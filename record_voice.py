@@ -1,6 +1,7 @@
 import sounddevice as sd
 import vosk
 import queue
+import json
 
 q = queue.Queue()
 
@@ -14,13 +15,11 @@ def callback(indata, frames, time, status):
     q.put(bytes(indata))
 
 
-with sd.RawInputStream(samplerate=samplerate, blocksize=32000, device=device[0], dtype='int16',
-                       channels=1, callback=callback):
+with sd.RawInputStream(samplerate=samplerate, blocksize=32000, device=device[0], dtype='int16', channels=1,
+                       callback=callback):
 
     rec = vosk.KaldiRecognizer(model, samplerate)
     while True:
         data = q.get()
         if rec.AcceptWaveform(data):
-            print(rec.Result())
-        else:
-            print(rec.PartialResult())
+            print(json.loads(rec.Result())['text'])
